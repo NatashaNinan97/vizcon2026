@@ -229,21 +229,27 @@ def make_play_callbacks(prefix):
     @callback(Output(f'{prefix}-play-interval', 'disabled'),
               Output(f'{prefix}-play-btn', 'children'),
               Output(f'{prefix}-play-btn', 'className'),
+              Output(f'{prefix}-year', 'value', allow_duplicate=True),
               Input(f'{prefix}-play-btn', 'n_clicks'),
               Input(f'{prefix}-year', 'value'),
               State(f'{prefix}-play-interval', 'disabled'),
               prevent_initial_call=True)
     def toggle(n, year, disabled):
         trig = ctx.triggered_id
-        # Auto-stop when reaching 2025
-        if trig == f'{prefix}-year' and year == 2025 and not disabled:
-            return True, '▶ Play', 'play-btn'
+        # Auto-stop on reaching the last year in the range
+        if trig == f'{prefix}-year' and year == years[-1] and not disabled:
+            return True, '▶ Play', 'play-btn', no_update
         if trig == f'{prefix}-play-btn':
             playing = bool(disabled)
+            # The slider defaults to the latest year, so hitting play there
+            # would advance nowhere. Rewind to the first year instead and
+            # play the series from the start.
+            rewind = years[0] if playing and year == years[-1] else no_update
             return (not playing,
                     '❚❚ Pause' if playing else '▶ Play',
-                    'play-btn playing' if playing else 'play-btn')
-        return no_update, no_update, no_update
+                    'play-btn playing' if playing else 'play-btn',
+                    rewind)
+        return no_update, no_update, no_update, no_update
 
     @callback(Output(f'{prefix}-year', 'value'),
               Input(f'{prefix}-play-interval', 'n_intervals'),
@@ -1563,24 +1569,29 @@ def build_social_progress_tab():
         next_tab_nudge('sp-spi', 'GDP', 'subview:gdp'),
         html.Div(className='viz-card', style={'padding': '20px 28px'}, children=[
             html.Div('Takeaway', className='kicker'),
-            html.P('163 of 171 countries improved since 2011. Only 8 fell.',
+            html.P('Money buys the floor. Choices build the ceiling.',
                    className='takeaway-lead'),
-            html.P('The typical gain was +4.8 SPI points. Six of the eight that '
-                   'fell were at war or in state collapse: Venezuela, Syria, '
-                   'Afghanistan, South Sudan, the Central African Republic, and '
-                   'Lebanon.',
+            html.P('This is the answer to the question this dashboard opened with. '
+                   'Income explains 83% of where a country lands on the Social '
+                   'Progress Index \u2014 so money genuinely matters, and pretending '
+                   'otherwise would be dishonest. But 17% is left over. That '
+                   'residual is not noise. It is the room a country has to '
+                   'outperform or squander its own wealth, and it is what every '
+                   'chart here has been circling.',
                    className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
                                                 'color': 'var(--ink-2)'}),
-            html.P('The other two were the United States (\u22122.4) and Canada '
-                   '(\u22120.8) \u2014 both wealthy, both peaceful, both worse off '
-                   'than in 2011. Meanwhile Fiji, Saudi Arabia, Moldova, The '
-                   'Gambia, and Armenia each gained 10 points or more in the same '
-                   'period, despite far lower incomes. Being rich didn\u2019t '
-                   'protect the US and Canada from decline, and being poor didn\u2019t '
-                   'stop these five from rapid gains \u2014 income bracket doesn\u2019t '
-                   'determine which direction a country moves.',
+            html.P('The chart above is that 17% in motion. 163 of 171 countries '
+                   'improved since 2011 and only 8 fell \u2014 and the poorer half '
+                   'of the world gained faster than the richer half. Nothing about '
+                   'an income bracket dictated which way a country moved.',
                    className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
                                                 'color': 'var(--ink-2)'}),
+            html.P('Wealth sets the starting line. It does not decide how far past '
+                   'that line a country actually carries its people.',
+                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                                'color': 'var(--ink-2)', 'fontWeight': '600',
+                                                'borderTop': '1px solid var(--grid)',
+                                                'paddingTop': '14px', 'marginTop': '4px'}),
         ]),
     ])
 
@@ -1751,6 +1762,7 @@ _pie_years = [y for y in years if y < max(years)]
 @callback(Output('sp-pie-play-interval', 'disabled'),
           Output('sp-pie-play-btn', 'children'),
           Output('sp-pie-play-btn', 'className'),
+          Output('sp-pie-year', 'value', allow_duplicate=True),
           Input('sp-pie-play-btn', 'n_clicks'),
           Input('sp-pie-year', 'value'),
           State('sp-pie-play-interval', 'disabled'),
@@ -1758,13 +1770,16 @@ _pie_years = [y for y in years if y < max(years)]
 def toggle_pie_play(n, year, disabled):
     trig = ctx.triggered_id
     if trig == 'sp-pie-year' and year == _pie_years[-1] and not disabled:
-        return True, '\u25b6 Play', 'play-btn'
+        return True, '\u25b6 Play', 'play-btn', no_update
     if trig == 'sp-pie-play-btn':
         playing = bool(disabled)
+        # Parked on the last year: rewind so play has a series to run.
+        rewind = _pie_years[0] if playing and year == _pie_years[-1] else no_update
         return (not playing,
                 '\u275a\u275a Pause' if playing else '\u25b6 Play',
-                'play-btn playing' if playing else 'play-btn')
-    return no_update, no_update, no_update
+                'play-btn playing' if playing else 'play-btn',
+                rewind)
+    return no_update, no_update, no_update, no_update
 
 @callback(Output('sp-pie-year', 'value'),
           Input('sp-pie-play-interval', 'n_intervals'),
@@ -1813,6 +1828,7 @@ app.clientside_callback(
 @callback(Output('sp-happy-play-interval', 'disabled'),
           Output('sp-happy-play-btn', 'children'),
           Output('sp-happy-play-btn', 'className'),
+          Output('sp-happy-year', 'value', allow_duplicate=True),
           Input('sp-happy-play-btn', 'n_clicks'),
           Input('sp-happy-year', 'value'),
           State('sp-happy-play-interval', 'disabled'),
@@ -1820,13 +1836,17 @@ app.clientside_callback(
 def toggle_happy_play(n, year, disabled):
     trig = ctx.triggered_id
     if trig == 'sp-happy-year' and year == max(happy_years) and not disabled:
-        return True, '\u25b6 Play', 'play-btn'
+        return True, '\u25b6 Play', 'play-btn', no_update
     if trig == 'sp-happy-play-btn':
         playing = bool(disabled)
+        # Happiness data starts at 2019, so rewind there rather than 2011.
+        rewind = (happy_years[0] if playing and year == happy_years[-1]
+                  else no_update)
         return (not playing,
                 '\u275a\u275a Pause' if playing else '\u25b6 Play',
-                'play-btn playing' if playing else 'play-btn')
-    return no_update, no_update, no_update
+                'play-btn playing' if playing else 'play-btn',
+                rewind)
+    return no_update, no_update, no_update, no_update
 
 
 @callback(Output('sp-happy-year', 'value'),
