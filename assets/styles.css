@@ -1555,3 +1555,28 @@ details.how-to-read summary:hover { color: var(--ink); }
   .card-title { font-size: 19px; white-space: normal; }
   .stat-value { font-size: 25px; }
 }
+
+/* The closing argument above the Key Insights cards. Carries the full
+   three-pillar sweep on its left edge so it reads as the conclusion
+   rather than as one more chart card. */
+.conclusion-card {
+  position: relative;
+  overflow: hidden;
+  margin: 0 24px 20px;
+  border-color: rgba(42, 120, 214, 0.20);
+}
+.conclusion-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--hairline);
+}
+.conclusion-card .kicker { color: var(--accent); }
+.conclusion-card .takeaway-lead {
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+@media (max-width: 1024px) {
+  .conclusion-card { margin: 0 16px 18px; }
+}

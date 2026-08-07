@@ -1569,29 +1569,24 @@ def build_social_progress_tab():
         next_tab_nudge('sp-spi', 'GDP', 'subview:gdp'),
         html.Div(className='viz-card', style={'padding': '20px 28px'}, children=[
             html.Div('Takeaway', className='kicker'),
-            html.P('Money buys the floor. Choices build the ceiling.',
+            html.P('163 of 171 countries improved since 2011. Only 8 fell.',
                    className='takeaway-lead'),
-            html.P('This is the answer to the question this dashboard opened with. '
-                   'Income explains 83% of where a country lands on the Social '
-                   'Progress Index \u2014 so money genuinely matters, and pretending '
-                   'otherwise would be dishonest. But 17% is left over. That '
-                   'residual is not noise. It is the room a country has to '
-                   'outperform or squander its own wealth, and it is what every '
-                   'chart here has been circling.',
+            html.P('The typical gain was +4.8 SPI points. Six of the eight that '
+                   'fell were at war or in state collapse: Venezuela, Syria, '
+                   'Afghanistan, South Sudan, the Central African Republic, and '
+                   'Lebanon.',
                    className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
                                                 'color': 'var(--ink-2)'}),
-            html.P('The chart above is that 17% in motion. 163 of 171 countries '
-                   'improved since 2011 and only 8 fell \u2014 and the poorer half '
-                   'of the world gained faster than the richer half. Nothing about '
-                   'an income bracket dictated which way a country moved.',
+            html.P('The other two were the United States (\u22122.4) and Canada '
+                   '(\u22120.8) \u2014 both wealthy, both peaceful, both worse off '
+                   'than in 2011. Meanwhile Fiji, Saudi Arabia, Moldova, The '
+                   'Gambia, and Armenia each gained 10 points or more in the same '
+                   'period, despite far lower incomes. Being rich didn\u2019t '
+                   'protect the US and Canada from decline, and being poor didn\u2019t '
+                   'stop these five from rapid gains \u2014 income bracket doesn\u2019t '
+                   'determine which direction a country moves.',
                    className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
                                                 'color': 'var(--ink-2)'}),
-            html.P('Wealth sets the starting line. It does not decide how far past '
-                   'that line a country actually carries its people.',
-                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
-                                                'color': 'var(--ink-2)', 'fontWeight': '600',
-                                                'borderTop': '1px solid var(--grid)',
-                                                'paddingTop': '14px', 'marginTop': '4px'}),
         ]),
     ])
 
@@ -2117,6 +2112,38 @@ def build_insights_tab():
                    'Click "Flip all" to reveal all reasons at once.',
                    className='card-sub', style={'textAlign': 'left', 'marginTop': '4px',
                                                 'fontStyle': 'italic'}),
+        ]),
+        # The dashboard's closing argument, stated before the individual
+        # findings so the cards below read as evidence for it.
+        html.Div(className='viz-card conclusion-card',
+                 style={'padding': '26px 30px'}, children=[
+            html.Div('The Bottom Line', className='kicker'),
+            html.P('Money buys the floor. Choices build the ceiling.',
+                   className='takeaway-lead', style={'fontSize': '22px'}),
+            html.P('This is the answer to the question this dashboard opened with. '
+                   'Income explains 83% of where a country lands on the Social '
+                   'Progress Index \u2014 so money genuinely matters, and pretending '
+                   'otherwise would be dishonest. But 17% is left over. That '
+                   'residual is not noise. It is the room a country has to '
+                   'outperform or squander its own wealth, and it is what every '
+                   'chart in this dashboard has been circling.',
+                   className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
+                                                'color': 'var(--ink-2)'}),
+            html.P('The direction of travel says the same thing. 163 of 171 '
+                   'countries improved since 2011 and only 8 fell \u2014 and the '
+                   'poorer half of the world gained faster than the richer half. '
+                   'Nothing about an income bracket dictated which way a country '
+                   'moved.',
+                   className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
+                                                'color': 'var(--ink-2)'}),
+            html.P('Wealth sets the starting line. It does not decide how far past '
+                   'that line a country actually carries its people. The findings '
+                   'below are that gap, country by country.',
+                   className='card-sub',
+                   style={'fontSize': '14px', 'lineHeight': '1.75',
+                          'color': 'var(--ink)', 'fontWeight': '600',
+                          'borderTop': '1px solid var(--grid)',
+                          'paddingTop': '16px', 'marginTop': '6px'}),
         ]),
         html.Button('Flip all', id='flip-all-btn', className='ghost-btn',
                     n_clicks=0, style={'margin': '0 24px 16px'}),
