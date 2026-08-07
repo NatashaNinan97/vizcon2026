@@ -2123,8 +2123,13 @@ def build_insights_tab():
             html.P([
                 html.B('Income explains 83% of a country\u2019s score \u2014 not 100%. '),
                 'Money builds the floor: water, shelter, basic care. Above that it '
-                'stops predicting much. 26 countries poorer than the United States '
-                'outscore it.'],
+                'stops predicting much \u2014 and the leftover 17% is where the '
+                'cards below live. ',
+                html.B('Costa Rica'), ' beats ', html.B('Qatar'), ' on a quarter '
+                'of the income. ', html.B('Guyana'), ' is #10 in the world for '
+                'wealth and #97 for social progress. ', html.B('Oman'), ' lost '
+                '$11.5K per person and gained 8 points anyway. The ',
+                html.B('United States'), ' did the exact opposite.'],
                 className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
                                              'color': 'var(--ink-2)'}),
             html.P([
@@ -2137,7 +2142,8 @@ def build_insights_tab():
                                              'color': 'var(--ink-2)'}),
             html.P('Wealth sets the starting line. Choices decide how far past it a '
                    'country carries its people \u2014 which is why progress has to be '
-                   'measured directly, not inferred from GDP.',
+                   'measured directly, not inferred from GDP. Every card below is '
+                   'one country making that case.',
                    className='card-sub',
                    style={'fontSize': '14px', 'lineHeight': '1.75',
                           'color': 'var(--ink)', 'fontWeight': '600',
