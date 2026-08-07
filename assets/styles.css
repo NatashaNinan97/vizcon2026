@@ -1580,3 +1580,39 @@ details.how-to-read summary:hover { color: var(--ink); }
 @media (max-width: 1024px) {
   .conclusion-card { margin: 0 16px 18px; }
 }
+
+/* Key Findings list inside the conclusion card. Each finding gets a small
+   pillar-coloured marker so the three read as a set. */
+.findings-list {
+  display: grid;
+  gap: 14px;
+}
+.finding {
+  position: relative;
+  padding-left: 16px;
+}
+.finding::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 2px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+.finding:nth-child(1)::before { background: var(--live); }
+.finding:nth-child(2)::before { background: var(--thrive); }
+.finding:nth-child(3)::before { background: var(--connect); }
+.finding-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.008em;
+  margin-bottom: 3px;
+}
+.finding-body {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin: 0;
+}

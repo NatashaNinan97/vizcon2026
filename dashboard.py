@@ -2125,35 +2125,41 @@ def build_insights_tab():
             html.Div('The Bottom Line', className='kicker'),
             html.P('GDP is not destiny.',
                    className='takeaway-lead', style={'fontSize': '24px'}),
-            html.P([
-                html.B('Income explains 83% of a country\u2019s score \u2014 not 100%. '),
-                'Money builds the floor: water, shelter, basic care. Above that it '
-                'stops predicting much \u2014 and the leftover 17% is where the '
-                'cards below live. ',
-                html.B('Costa Rica'), ' beats ', html.B('Qatar'), ' on a quarter '
-                'of the income. ', html.B('Guyana'), ' is #10 in the world for '
-                'wealth and #97 for social progress. ', html.B('Oman'), ' lost '
-                '$11.5K per person and gained 8 points anyway. The ',
-                html.B('United States'), ' did the exact opposite.'],
-                className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
-                                             'color': 'var(--ink-2)'}),
-            html.P([
-                html.B('Progress has stalled since 2021. '),
-                'The world gained +0.43 SPI points a year through 2021, then just '
-                '+0.14. Of the twelve components, Rights and Voice is the only one '
-                'falling \u2014 down 3.5 points since 2011 \u2014 and it drags '
-                'health, safety, and inclusion with it.'],
-                className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
-                                             'color': 'var(--ink-2)'}),
-            html.P('Wealth sets the starting line. Choices decide how far past it a '
-                   'country carries its people \u2014 which is why progress has to be '
-                   'measured directly, not inferred from GDP. Every card below is '
-                   'one country making that case.',
+            html.P('Economic wealth does not automatically guarantee wellbeing \u2014 '
+                   'and global quality of life is now stagnating, driven by rising '
+                   'restrictions on human rights.',
                    className='card-sub',
-                   style={'fontSize': '14px', 'lineHeight': '1.75',
-                          'color': 'var(--ink)', 'fontWeight': '600',
-                          'borderTop': '1px solid var(--grid)',
-                          'paddingTop': '16px', 'marginTop': '6px'}),
+                   style={'fontSize': '15px', 'lineHeight': '1.7',
+                          'color': 'var(--ink)', 'marginBottom': '18px'}),
+            html.Div('Key Findings', className='kicker',
+                     style={'marginBottom': '10px'}),
+            html.Div(className='findings-list', children=[
+                html.Div([
+                    html.Div('Economic Disconnect', className='finding-name'),
+                    html.P('Money helps poorer nations build basic infrastructure, '
+                           'but among wealthier nations high GDP does not predict '
+                           'high social progress. The United States ranks 19th of '
+                           '23 countries at similar income, lagging its peers most '
+                           'on safety (\u221211 points) and health (\u221210).',
+                           className='finding-body'),
+                ], className='finding'),
+                html.Div([
+                    html.Div('The Rights Recession', className='finding-name'),
+                    html.P('Global social progress has stalled since 2021 \u2014 '
+                           'from +0.43 points a year to +0.14. Rights and Voice is '
+                           'the only one of the twelve components in decline, and '
+                           'it spills over into health, safety, and environmental '
+                           'conditions.',
+                           className='finding-body'),
+                ], className='finding'),
+                html.Div([
+                    html.Div('Policy Prioritization', className='finding-name'),
+                    html.P('Governments must measure success by direct social and '
+                           'environmental outcomes rather than economic output '
+                           'alone, to target what communities actually need.',
+                           className='finding-body'),
+                ], className='finding'),
+            ]),
         ]),
         html.Button('Flip all', id='flip-all-btn', className='ghost-btn',
                     n_clicks=0, style={'margin': '0 24px 16px'}),
