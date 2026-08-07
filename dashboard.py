@@ -683,14 +683,12 @@ def build_overview_tab():
                           {'label': 'Population', 'value': 'pop'},
                           {'label': 'GDP per Capita', 'value': 'gdp'},
                       ], 'dims')], className='control-group'),
-            # Year slider for "Dimension distributions" only — Population/GDP
-            # maps below always show the latest year and have their own
-            # slider next to the Top 25 chart instead.
-            html.Div(id='ov-dims-timeline-wrap', children=timeline('ov')),
         ]),
         html.Div(id='ov-body-1', style={'minHeight': '500px'}, children=[
             html.Div(className='viz-card', children=[
                 html.Div(id='ov-body-1-head'),
+                html.Div(id='ov-dims-timeline-wrap', children=timeline('ov'),
+                         style={'marginBottom': '12px'}),
                 dcc.Graph(id='ov-graph-1', figure={}, config=GRAPH_CONFIG),
                 html.Div([html.Div('Regions', className='control-label'),
                           region_chips()], id='ov-region-chips-wrap',
@@ -700,11 +698,11 @@ def build_overview_tab():
                 html.Div(id='ov-body-1-table'),
             ]),
         ]),
-        html.Div(id='ov-top25-timeline-wrap',
-                 className='filter-bar', children=[timeline('ov25')]),
         html.Div(id='ov-body-2', style={'minHeight': '500px'}, children=[
             html.Div(className='viz-card', children=[
                 html.Div(id='ov-body-2-head'),
+                html.Div(id='ov-top25-timeline-wrap', children=timeline('ov25'),
+                         style={'marginBottom': '12px'}),
                 dcc.Graph(id='ov-graph-2', figure={}, config=GRAPH_CONFIG),
                 how_to_read([
                     'A ranked list of the 25 leading countries \u2014 longest bar '
@@ -1958,6 +1956,17 @@ def build_insights_tab():
     afr = latest[latest['Region'] == 'Sub-Saharan Africa'][SPI_COL].mean()
 
     overview_insights = [
+        ('\U0001f4b0', 'The 159\u00d7 Income Gap',
+         f'{flag("Singapore")} Singapore ($133K per capita) is 159\u00d7 richer '
+         f'than {flag("Burundi")} Burundi ($0.8K). The richest country is also '
+         f'the smallest on this list (6M people) \u2014 concentrated wealth in a '
+         f'city-state. The poorest has 13M people and GDP hasn\u2019t moved in '
+         f'15 years of data.'),
+        ('\U0001f465', '35% of Humanity in Two Countries',
+         f'{flag("India")} India (1.45B) + {flag("China")} China (1.41B) = 2.86B '
+         f'of 8.1B people. But they\u2019re moving in opposite directions: India '
+         f'added 207M since 2011 while China peaked in 2022 and has since lost '
+         f'3M \u2014 the first sustained decline in modern history.'),
         ('\U0001f3c6', 'The Leader',
          f"{flag(top['Country'])} {top['Country']} leads the world with an SPI of "
          f"{top[SPI_COL]:.1f} \u2014 a {top[SPI_COL] - bot[SPI_COL]:.0f}-point gap over "
@@ -2018,6 +2027,11 @@ def build_insights_tab():
          f'1,412M) and now leads by 42M. China peaked that same year and has '
          f'shrunk every year since \u2014 decades of one-child policy and rising '
          f'costs of living catching up.'),
+        ('\U0001f3c3', 'Oman\u2019s Population Doubled',
+         f'{flag("Oman")} Oman\u2019s population grew 92% between 2011 and 2025 '
+         f'\u2014 the fastest growth of any country over 1 million people. Gulf '
+         f'states (Oman, {flag("Qatar")} Qatar +77%, {flag("Kuwait")} Kuwait +69%) '
+         f'dominate the list, all driven by labor migration rather than birth rates.'),
     ]
 
     # Split each insight into front (fact) and back (reasoning)
@@ -2279,6 +2293,8 @@ def _preload_caches():
 
 # Preload expensive figures in background so tab switches are instant. This
 # runs at import time (not just __main__) so it also fires under gunicorn.
+# On hosting with limited CPU (Render free tier), this runs slower but still
+# ensures second visits to each tab are instant.
 Thread(target=_preload_caches, daemon=True).start()
 
 if __name__ == '__main__':
