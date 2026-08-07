@@ -1272,3 +1272,278 @@ details.how-to-read summary:hover { color: var(--ink); }
 }
 .htr-list { padding-left: 32px; }
 .htr-list li { margin-bottom: 4px; }
+
+/* ============================================================
+   SHOWCASE LAYER
+   Competition-grade visual polish keyed to the exhibition theme
+   "How the World Lives, Thrives & Connects". Purely presentational:
+   extends the tokens above, touches no layout that the callbacks
+   depend on, and preserves the .filter-bar(40) > .viz-card(1)
+   stacking order that keeps dropdowns visible.
+   ============================================================ */
+
+:root {
+  --live-soft: rgba(42, 120, 214, 0.14);
+  --thrive-soft: rgba(235, 104, 52, 0.14);
+  --connect-soft: rgba(27, 175, 122, 0.14);
+  --theme-sweep: linear-gradient(100deg, var(--live) 0%, var(--thrive) 52%, var(--connect) 100%);
+  --hairline: linear-gradient(90deg, var(--live), var(--thrive) 55%, var(--connect));
+}
+[data-theme="dark"] {
+  --live-soft: rgba(57, 135, 229, 0.20);
+  --thrive-soft: rgba(217, 89, 38, 0.20);
+  --connect-soft: rgba(25, 158, 112, 0.20);
+}
+
+/* ---------------------------------------------- hero: aurora -- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding-top: 64px;
+  border-color: rgba(42, 120, 214, 0.14);
+  box-shadow: var(--shadow);
+}
+
+/* Three slow-drifting colour fields — one per pillar. Sits behind all
+   hero content (z-index 0 vs. the auto-stacked children) and is purely
+   decorative, so it never intercepts pointer events. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -40% -10%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 46% at 14% 18%, var(--live-soft) 0%, transparent 68%),
+    radial-gradient(40% 44% at 86% 24%, var(--thrive-soft) 0%, transparent 68%),
+    radial-gradient(46% 50% at 50% 96%, var(--connect-soft) 0%, transparent 70%);
+  animation: auroraDrift 26s ease-in-out infinite alternate;
+}
+/* A single luminous hairline across the top edge, sweeping the three
+   pillar colours — the visual signature for the whole dashboard. */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 2;
+  background: var(--hairline);
+  opacity: 0.9;
+}
+.hero > * { position: relative; z-index: 1; }
+
+@keyframes auroraDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(2.5%, -2%, 0) scale(1.06); }
+  100% { transform: translate3d(-2%, 2.5%, 0) scale(1.03); }
+}
+
+/* The white Key Insights / Appendix heroes keep the hairline but drop
+   the colour wash, so they stay visually quiet as the user asked. */
+.hero.hero--white::before { display: none; }
+
+/* ---------------------------------------- hero: theme ribbon -- */
+
+.theme-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 18px 7px 14px;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(42, 120, 214, 0.22);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  box-shadow: 0 1px 2px rgba(11, 11, 11, 0.05);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.theme-ribbon .tr-word { color: var(--ink); }
+.theme-ribbon .tr-word.w-live { color: var(--live); }
+.theme-ribbon .tr-word.w-thrive { color: var(--thrive); }
+.theme-ribbon .tr-word.w-connect { color: var(--connect); }
+.theme-ribbon .tr-sep { color: var(--muted); font-weight: 600; }
+/* Three-colour pulse dot — a small sign of life at rest. */
+.theme-ribbon .tr-pulse {
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  background: var(--theme-sweep);
+  flex: 0 0 auto;
+  animation: pulseGlow 2.8s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--live-soft); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* --------------------------------------- hero: display title -- */
+
+.hero-title {
+  font-size: clamp(30px, 5.2vw, 56px);
+  letter-spacing: -0.038em;
+  line-height: 1.03;
+  /* Gradient-filled display type. -webkit-background-clip is the widely
+     supported spelling; the standard property is listed alongside it. */
+  background: linear-gradient(180deg, var(--ink) 0%, color-mix(in srgb, var(--ink) 62%, var(--live)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+.hero-lede { font-size: 15px; max-width: 860px; }
+.hero-lede b { color: var(--ink); }
+
+/* ------------------------------------- pillar chips: colour --- */
+
+.pillar-chip {
+  position: relative;
+  overflow: hidden;
+  padding-top: 20px;
+  border-radius: 14px;
+  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1),
+              box-shadow 0.24s ease, border-color 0.24s ease;
+}
+/* Each chip carries its own pillar colour as a top edge. --pillar is set
+   inline per chip in build_hero(). */
+.pillar-chip::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--pillar, var(--accent));
+}
+.pillar-chip:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--pillar, var(--accent)) 40%, var(--grid));
+  box-shadow: var(--shadow-lift),
+              0 10px 30px -18px var(--pillar, var(--accent));
+}
+.pillar-chip b { font-size: 16px; letter-spacing: -0.01em; }
+.pillar-chip .p-dot {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--pillar, var(--accent)) 16%, transparent);
+}
+
+/* ------------------------------------------ stat tiles: KPI --- */
+
+.stat-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.24s ease;
+}
+.stat-tile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--hairline);
+  opacity: 0.55;
+}
+.stat-tile:hover { transform: translateY(-4px); }
+.stat-value {
+  font-size: 29px;
+  letter-spacing: -0.028em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stagger the KPI row so the four figures arrive in sequence rather than
+   all at once — reads as deliberate rather than as a page flash. */
+.kpi-row .stat-tile { animation: cardFadeIn 0.5s ease both; }
+.kpi-row .stat-tile:nth-child(1) { animation-delay: 0.04s; }
+.kpi-row .stat-tile:nth-child(2) { animation-delay: 0.10s; }
+.kpi-row .stat-tile:nth-child(3) { animation-delay: 0.16s; }
+.kpi-row .stat-tile:nth-child(4) { animation-delay: 0.22s; }
+
+/* ------------------------------------------------ cards ------- */
+
+.viz-card {
+  border-radius: 18px;
+  transition: background 0.35s ease, border-color 0.24s ease,
+              box-shadow 0.24s ease, transform 0.24s ease;
+}
+.viz-card:hover {
+  box-shadow: var(--shadow-lift);
+  border-color: rgba(42, 120, 214, 0.18);
+}
+/* Accent rule under each chart heading, tinted to the theme sweep. */
+.card-head {
+  position: relative;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+.card-head::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 44px; height: 2px;
+  border-radius: 2px;
+  background: var(--hairline);
+  opacity: 0.75;
+}
+.card-title { font-size: 22px; letter-spacing: -0.018em; }
+
+/* Leading tick on every kicker — a consistent typographic anchor. */
+.kicker { display: flex; align-items: center; gap: 7px; }
+.kicker::before {
+  content: '';
+  width: 14px; height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.55;
+  flex: 0 0 auto;
+}
+/* The hero kicker is centred, and the ribbon already carries the mark. */
+.hero .kicker { justify-content: center; }
+
+/* --------------------------------------- insight flip tiles --- */
+
+.insight-tile { border-radius: 16px; }
+.insight-tile::before { width: 4px; background: var(--hairline); opacity: 1; }
+.insight-tile:hover { transform: translateY(-4px); }
+
+/* --------------------------------------------- topbar tabs ---- */
+
+.topbar { border-bottom-color: rgba(42, 120, 214, 0.14); }
+.topbar .nav-tabs .nav-link.active {
+  box-shadow: 0 1px 3px rgba(11, 11, 11, 0.14),
+              inset 0 -2px 0 0 color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* ------------------------------------------------ controls ---- */
+
+/* Segmented view switches and region chips get a clearer active state so
+   the user can always tell which view is on screen. */
+.filter-bar { border-radius: 16px; }
+
+/* ------------------------------------ motion accessibility ---- */
+
+/* Respect the OS "reduce motion" setting: hold every decorative
+   animation still rather than shipping movement a user has opted out of. */
+@media (prefers-reduced-motion: reduce) {
+  .hero::before,
+  .theme-ribbon .tr-pulse,
+  .viz-card,
+  .kpi-row .stat-tile { animation: none !important; }
+  .viz-card:hover,
+  .stat-tile:hover,
+  .pillar-chip:hover,
+  .insight-tile:hover { transform: none; }
+}
+
+/* ------------------------------------------------ responsive -- */
+
+@media (max-width: 1100px) {
+  .hero { padding-top: 48px; }
+  .hero-title { font-size: clamp(26px, 6vw, 40px); }
+  .theme-ribbon { letter-spacing: 0.12em; font-size: 10px; }
+}
+@media (max-width: 600px) {
+  .hero { padding-top: 36px; }
+  .theme-ribbon { flex-wrap: wrap; justify-content: center; row-gap: 4px; }
+  .card-title { font-size: 19px; white-space: normal; }
+  .stat-value { font-size: 25px; }
+}

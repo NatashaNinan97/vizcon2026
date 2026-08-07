@@ -390,16 +390,27 @@ def render_tab(tab, loaded):
 
 def build_hero():
     def chip(word, var, desc):
+        # --pillar drives the chip's top edge, dot halo and hover glow in CSS,
+        # so each of Live / Thrive / Connect carries its own colour identity.
         return html.Div([
             html.Div([
                 html.Span(className='p-dot', style={'backgroundColor': f'var({var})'}),
                 html.B(word)]),
             html.Div(desc, className='pillar-chip-desc'),
-        ], className='pillar-chip')
+        ], className='pillar-chip', style={'--pillar': f'var({var})'})
 
     return html.Div(className='hero', children=[
-        html.Div('How the World Lives, Thrives & Connects', className='kicker',
-                 style={'textAlign': 'center'}),
+        # Exhibition theme ribbon — the three pillar words in their own
+        # colours, so the theme reads at a glance before any chart loads.
+        html.Div([
+            html.Span(className='tr-pulse'),
+            html.Span('How the World'),
+            html.Span('Lives', className='tr-word w-live'),
+            html.Span('·', className='tr-sep'),
+            html.Span('Thrives', className='tr-word w-thrive'),
+            html.Span('·', className='tr-sep'),
+            html.Span('Connects', className='tr-word w-connect'),
+        ], className='theme-ribbon'),
         html.H1('DOES MONEY BUY SOCIAL PROGRESS?', className='hero-title',
                 style={'textAlign': 'center'}),
         html.P('What does it actually mean for a society to progress? GDP tells us '
