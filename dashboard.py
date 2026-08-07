@@ -1569,29 +1569,27 @@ def build_social_progress_tab():
         next_tab_nudge('sp-spi', 'GDP', 'subview:gdp'),
         html.Div(className='viz-card', style={'padding': '20px 28px'}, children=[
             html.Div('Takeaway', className='kicker'),
-            html.P('GDP is not destiny \u2014 but progress has stalled.',
+            html.P('The biggest movers are not the richest countries.',
                    className='takeaway-lead'),
-            html.P([
-                html.B('Economic disconnect. '),
-                'Money helps poorer countries build the basics. Among rich ones it '
-                'stops predicting much \u2014 26 countries poorer than the United '
-                'States outscore it, and the US is one of only 8 countries to '
-                'decline since 2011 (\u22122.4).'],
-                className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
-                                             'color': 'var(--ink-2)'}),
-            html.P([
-                html.B('The rights recession. '),
-                'The world gained +0.43 SPI points a year through 2021, then just '
-                '+0.14. Rights and Voice is the only one of the twelve components '
-                'falling \u2014 down 3.5 points since 2011 \u2014 and it drags '
-                'health, safety, and inclusion with it.'],
-                className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
-                                             'color': 'var(--ink-2)'}),
-            html.P([
-                html.B('What follows. '),
-                'Progress has to be measured directly, not inferred from GDP.'],
-                className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
-                                             'color': 'var(--ink-2)'}),
+            html.P('Every one of the eight largest gains since 2011 came from a '
+                   'low- or middle-income country: Fiji (+11.8), Saudi Arabia '
+                   '(+10.8), Moldova, The Gambia and Armenia (+10.0 each), then '
+                   'Uzbekistan, Vietnam and Eswatini. The Gambia manages its '
+                   '10-point gain on $3.0K per person.',
+                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                                'color': 'var(--ink-2)'}),
+            html.P('That pattern holds across the whole distribution. The poorer '
+                   'half of the world in 2011 gained an average of +5.8 points by '
+                   '2025, against +4.1 for the richer half \u2014 the bottom is '
+                   'rising about 1.4\u00d7 faster than the top.',
+                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                                'color': 'var(--ink-2)'}),
+            html.P('But catching up is slow work. The spread between the best and '
+                   'worst country has barely budged \u2014 63.2 points in 2011, '
+                   '64.0 today. Countries are climbing; the ladder itself is the '
+                   'same length.',
+                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                                'color': 'var(--ink-2)'}),
         ]),
     ])
 
