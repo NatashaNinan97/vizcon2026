@@ -1569,24 +1569,29 @@ def build_social_progress_tab():
         next_tab_nudge('sp-spi', 'GDP', 'subview:gdp'),
         html.Div(className='viz-card', style={'padding': '20px 28px'}, children=[
             html.Div('Takeaway', className='kicker'),
-            html.P('163 of 171 countries improved since 2011. Only 8 fell.',
+            html.P('GDP is not destiny \u2014 but progress has stalled.',
                    className='takeaway-lead'),
-            html.P('The typical gain was +4.8 SPI points. Six of the eight that '
-                   'fell were at war or in state collapse: Venezuela, Syria, '
-                   'Afghanistan, South Sudan, the Central African Republic, and '
-                   'Lebanon.',
-                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
-                                                'color': 'var(--ink-2)'}),
-            html.P('The other two were the United States (\u22122.4) and Canada '
-                   '(\u22120.8) \u2014 both wealthy, both peaceful, both worse off '
-                   'than in 2011. Meanwhile Fiji, Saudi Arabia, Moldova, The '
-                   'Gambia, and Armenia each gained 10 points or more in the same '
-                   'period, despite far lower incomes. Being rich didn\u2019t '
-                   'protect the US and Canada from decline, and being poor didn\u2019t '
-                   'stop these five from rapid gains \u2014 income bracket doesn\u2019t '
-                   'determine which direction a country moves.',
-                   className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
-                                                'color': 'var(--ink-2)'}),
+            html.P([
+                html.B('Economic disconnect. '),
+                'Money helps poorer countries build the basics. Among rich ones it '
+                'stops predicting much \u2014 26 countries poorer than the United '
+                'States outscore it, and the US is one of only 8 countries to '
+                'decline since 2011 (\u22122.4).'],
+                className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                             'color': 'var(--ink-2)'}),
+            html.P([
+                html.B('The rights recession. '),
+                'The world gained +0.43 SPI points a year through 2021, then just '
+                '+0.14. Rights and Voice is the only one of the twelve components '
+                'falling \u2014 down 3.5 points since 2011 \u2014 and it drags '
+                'health, safety, and inclusion with it.'],
+                className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                             'color': 'var(--ink-2)'}),
+            html.P([
+                html.B('What follows. '),
+                'Progress has to be measured directly, not inferred from GDP.'],
+                className='card-sub', style={'fontSize': '13.5px', 'lineHeight': '1.7',
+                                             'color': 'var(--ink-2)'}),
         ]),
     ])
 
