@@ -2118,27 +2118,26 @@ def build_insights_tab():
         html.Div(className='viz-card conclusion-card',
                  style={'padding': '26px 30px'}, children=[
             html.Div('The Bottom Line', className='kicker'),
-            html.P('Money buys the floor. Choices build the ceiling.',
-                   className='takeaway-lead', style={'fontSize': '22px'}),
-            html.P('This is the answer to the question this dashboard opened with. '
-                   'Income explains 83% of where a country lands on the Social '
-                   'Progress Index \u2014 so money genuinely matters, and pretending '
-                   'otherwise would be dishonest. But 17% is left over. That '
-                   'residual is not noise. It is the room a country has to '
-                   'outperform or squander its own wealth, and it is what every '
-                   'chart in this dashboard has been circling.',
-                   className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
-                                                'color': 'var(--ink-2)'}),
-            html.P('The direction of travel says the same thing. 163 of 171 '
-                   'countries improved since 2011 and only 8 fell \u2014 and the '
-                   'poorer half of the world gained faster than the richer half. '
-                   'Nothing about an income bracket dictated which way a country '
-                   'moved.',
-                   className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
-                                                'color': 'var(--ink-2)'}),
-            html.P('Wealth sets the starting line. It does not decide how far past '
-                   'that line a country actually carries its people. The findings '
-                   'below are that gap, country by country.',
+            html.P('GDP is not destiny.',
+                   className='takeaway-lead', style={'fontSize': '24px'}),
+            html.P([
+                html.B('Income explains 83% of a country\u2019s score \u2014 not 100%. '),
+                'Money builds the floor: water, shelter, basic care. Above that it '
+                'stops predicting much. 26 countries poorer than the United States '
+                'outscore it.'],
+                className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
+                                             'color': 'var(--ink-2)'}),
+            html.P([
+                html.B('Progress has stalled since 2021. '),
+                'The world gained +0.43 SPI points a year through 2021, then just '
+                '+0.14. Of the twelve components, Rights and Voice is the only one '
+                'falling \u2014 down 3.5 points since 2011 \u2014 and it drags '
+                'health, safety, and inclusion with it.'],
+                className='card-sub', style={'fontSize': '14px', 'lineHeight': '1.75',
+                                             'color': 'var(--ink-2)'}),
+            html.P('Wealth sets the starting line. Choices decide how far past it a '
+                   'country carries its people \u2014 which is why progress has to be '
+                   'measured directly, not inferred from GDP.',
                    className='card-sub',
                    style={'fontSize': '14px', 'lineHeight': '1.75',
                           'color': 'var(--ink)', 'fontWeight': '600',
