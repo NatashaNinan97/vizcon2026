@@ -1958,14 +1958,14 @@ def build_insights_tab():
     overview_insights = [
         ('\U0001f4b0', 'The 159\u00d7 Income Gap',
          f'{flag("Singapore")} Singapore ($133K per capita) is 159\u00d7 richer '
-         f'than {flag("Burundi")} Burundi ($0.8K). Small open economies with '
-         f'strong rule of law attract global capital; landlocked, conflict-prone '
-         f'nations stay trapped at subsistence level.'),
+         f'than {flag("Burundi")} Burundi ($0.8K). Singapore is a global trade '
+         f'and financial hub; Burundi is landlocked, agrarian, and historically '
+         f'unstable.'),
         ('\U0001f465', '35% of Humanity in Two Countries',
          f'{flag("India")} India (1.45B) + {flag("China")} China (1.41B) = 2.86B '
-         f'of 8.1B people. Both sit on vast river systems (Ganges, Yangtze) that '
-         f'supported dense agriculture for millennia, enabling population growth '
-         f'long before industrialization.'),
+         f'of 8.1B people. Monsoon-fed river plains ideal for rice farming let '
+         f'these regions scale agriculture \u2014 and population \u2014 earlier '
+         f'and faster than anywhere else.'),
         ('\U0001f3c6', 'The Leader',
          f"{flag(top['Country'])} {top['Country']} leads the world with an SPI of "
          f"{top[SPI_COL]:.1f} \u2014 a {top[SPI_COL] - bot[SPI_COL]:.0f}-point gap over "
