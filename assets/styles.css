@@ -1394,14 +1394,14 @@ details.how-to-read summary:hover { color: var(--ink); }
   -webkit-text-fill-color: transparent;
   margin-bottom: 20px;
 }
-/* Wide enough that the lede sets in two full lines instead of spilling a
-   two-word orphan ("that gap.") onto a third. text-wrap: pretty is the
-   belt-and-braces guard — where supported it refuses to leave a short
-   last line at any viewport width. */
+/* text-wrap: balance evens out the line lengths of this centred block, so
+   it never strands a two-word orphan ("that gap.") on its own line. This
+   works at any window width — a max-width cap does not, because it only
+   takes effect once the container is wider than the cap. */
 .hero-lede {
   font-size: 15px;
   max-width: 1010px;
-  text-wrap: pretty;
+  text-wrap: balance;
 }
 .hero-lede b { color: var(--ink); }
 
