@@ -834,6 +834,13 @@ def nudge_to_dims(n):
     return 'dims' if n else no_update
 
 
+@callback(Output('exp-view', 'value', allow_duplicate=True),
+          Input({'type': 'next-tab-btn', 'index': 'exp-to-region'}, 'n_clicks'),
+          prevent_initial_call=True)
+def nudge_to_region_view(n):
+    return 'region' if n else no_update
+
+
 @callback(Output('ov-graph-1', 'figure'),
           Output('ov-body-1-head', 'children'),
           Output('ov-body-1-table', 'children'),
@@ -1166,6 +1173,8 @@ def render_explore_scaffold(view):
                 html.Div(id='dd-ind-table'),
             ]),
         ]),
+        next_tab_nudge('exp-to-region', 'Regional Analysis', 'exp-view:region',
+                      wrapper_id='exp-nudge-region'),
     ])
 
 
