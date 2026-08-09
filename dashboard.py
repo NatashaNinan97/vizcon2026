@@ -215,8 +215,9 @@ def segmented(cid, options, value):
                           value=value, inline=True)
 
 
-def timeline(prefix, note=None, wrapper_id=None):
-    """Year slider + play/step controls + interval, one per tab."""
+def timeline(prefix, note=None, wrapper_id=None, speed=PLAY_SPEED):
+    """Year slider + play/step controls + interval, one per tab. `speed` is
+    the play-tick interval in ms — lower plays through years faster."""
     kids = [
         html.Div([
             html.Button('▶ Play', id=f'{prefix}-play-btn', className='play-btn',
@@ -233,7 +234,7 @@ def timeline(prefix, note=None, wrapper_id=None):
             updatemode='drag'),
             className='slider-wrap'),
         html.Div(str(LATEST), id=f'{prefix}-year-badge', className='year-badge'),
-        dcc.Interval(id=f'{prefix}-play-interval', interval=PLAY_SPEED,
+        dcc.Interval(id=f'{prefix}-play-interval', interval=speed,
                      disabled=True),
     ]
     wrap = [html.Div('Year', className='control-label'),
@@ -1671,7 +1672,7 @@ def build_social_progress_tab():
                                value='ALL', clearable=False,
                                style={'minWidth': '230px'})],
                  className='control-group'),
-        timeline('sp'),
+        timeline('sp', speed=350),
     ])
     sp_section = html.Div([
         _sp_card('Global View', 'sp-bubble-title',
@@ -2530,6 +2531,15 @@ def _preload_caches():
     for y in years[-3:]:
         _bubble(y, None)
         _gdp(y, None)
+    # Region Lens: picking any region was an uncached miss (every focus
+    # value except 'All Regions' recomputed the figure live, which is why
+    # switching regions felt slow). Warm every region at the latest year —
+    # by far the most common case — so the dropdown is instant on first use.
+    # _bubble's cache holds 64 entries: 1 (All) + 8 regions <= that easily.
+    for r in regions:
+        _bubble(LATEST, r)
+        _gdp(LATEST, r)
+        _happy_spi(hy, r)
     # Overview's "Dimension Distributions" slider — warm every year up front
     # (cheap, ~45ms each) so scrubbing/playing is instant from the first tick,
     # not just on revisits.
