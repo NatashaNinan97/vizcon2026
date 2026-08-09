@@ -306,8 +306,8 @@ app.layout = html.Div(id='app-root', children=[
             dbc.Tab(label='Explore', tab_id='explore'),
             dbc.Tab(label='Progress', tab_id='social_progress'),
             dbc.Tab(label='Key Insights', tab_id='insights'),
-            dbc.Tab(label='Appendix', tab_id='appendix'),
             dbc.Tab(label='Ask the Data', tab_id='ask'),
+            dbc.Tab(label='Appendix', tab_id='appendix'),
         ], id='tabs', active_tab='overview'),
         html.Button('🌙', id='theme-toggle', className='theme-toggle',
                     n_clicks=0, title='Toggle dark mode',
@@ -327,9 +327,9 @@ app.layout = html.Div(id='app-root', children=[
              children=[html.Div(className='skeleton')]),
     html.Div(id='tab-insights', className='page-wrap', style={'display': 'none'},
              children=[html.Div(className='skeleton')]),
-    html.Div(id='tab-appendix', className='page-wrap', style={'display': 'none'},
-             children=[html.Div(className='skeleton')]),
     html.Div(id='tab-ask', className='page-wrap', style={'display': 'none'},
+             children=[html.Div(className='skeleton')]),
+    html.Div(id='tab-appendix', className='page-wrap', style={'display': 'none'},
              children=[html.Div(className='skeleton')]),
 ])
 
@@ -566,32 +566,50 @@ def build_framework():
     ])
 
 
+def _nudge_target(triggered_idx):
+    """Resolve the target string stored alongside the clicked nudge button."""
+    for entry in ctx.states_list[0]:
+        if entry['id'].get('index') == triggered_idx:
+            return entry.get('value') or ''
+    return ''
+
+
+# Tab switches and Progress sub-view switches are handled by SEPARATE
+# callbacks on purpose. Tabs are lazy-loaded, so 'sp-sub-view' does not exist
+# in the DOM until the Progress tab has been visited at least once. A single
+# callback that outputs to both would silently fail to fire when clicked from
+# another tab (e.g. "Switch to Progress" from Explore), because one of its
+# outputs is missing.
 @callback(Output('tabs', 'active_tab', allow_duplicate=True),
-          Output('sp-sub-view', 'value', allow_duplicate=True),
           Input({'type': 'next-tab-btn', 'index': ALL}, 'n_clicks'),
           State({'type': 'next-tab-target', 'index': ALL}, 'data'),
           prevent_initial_call=True)
 def jump_to_next_tab(_clicks, targets):
-    """Handles tab switches and Progress sub-view switches. Overview sub-view
-    switches are handled by the dedicated per-button callbacks below."""
     trig = ctx.triggered_id
     if not isinstance(trig, dict) or not ctx.triggered[0].get('value'):
-        return no_update, no_update
+        return no_update
     triggered_idx = trig.get('index', '')
     if triggered_idx.startswith('ov-'):
-        return no_update, no_update
-    for entry in ctx.states_list[0]:
-        if entry['id'].get('index') == triggered_idx:
-            target = entry.get('value')
-            if not target:
-                break
-            kind, _, value = target.partition(':')
-            if kind == 'tab':
-                return value, no_update
-            if kind == 'subview':
-                return no_update, value
-            break
-    return no_update, no_update
+        return no_update
+    kind, _, value = _nudge_target(triggered_idx).partition(':')
+    return value if kind == 'tab' and value else no_update
+
+
+@callback(Output('sp-sub-view', 'value', allow_duplicate=True),
+          Input({'type': 'next-tab-btn', 'index': ALL}, 'n_clicks'),
+          State({'type': 'next-tab-target', 'index': ALL}, 'data'),
+          prevent_initial_call=True)
+def jump_to_sub_view(_clicks, targets):
+    """Progress-tab View toggle. Only fires for 'subview:' targets, which are
+    only ever rendered inside the Progress tab itself."""
+    trig = ctx.triggered_id
+    if not isinstance(trig, dict) or not ctx.triggered[0].get('value'):
+        return no_update
+    triggered_idx = trig.get('index', '')
+    if triggered_idx.startswith('ov-'):
+        return no_update
+    kind, _, value = _nudge_target(triggered_idx).partition(':')
+    return value if kind == 'subview' and value else no_update
 
 
 # "Back to Top" nudge buttons — pure client-side smooth scroll, no server
@@ -2299,6 +2317,8 @@ def build_insights_tab():
         html.Button('Flip all', id='flip-all-btn', className='ghost-btn',
                     n_clicks=0, style={'margin': '0 24px 16px'}),
         html.Div(cards, className='insights-grid', id='insights-grid'),
+        next_tab_nudge('ins-to-ask', 'Ask the Data', 'tab:ask',
+                      hint='Have a question these cards don\u2019t answer?'),
     ])
 
 
