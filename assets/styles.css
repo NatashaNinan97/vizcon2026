@@ -1616,3 +1616,25 @@ details.how-to-read summary:hover { color: var(--ink); }
   color: var(--ink-2);
   margin: 0;
 }
+
+/* Two-row variant of the nudge bar, for places with two distinct
+   destinations that each need their own explanation. The hint column is a
+   fixed width so both buttons line up vertically. */
+.next-tab-nudge.nudge--rows {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.nudge--rows .nudge-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.nudge--rows .next-tab-hint {
+  flex: 0 0 auto;
+  min-width: 330px;
+}
+@media (max-width: 700px) {
+  .nudge--rows .next-tab-hint { min-width: 0; flex: 1 1 100%; }
+}

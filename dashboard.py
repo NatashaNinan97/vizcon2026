@@ -1213,12 +1213,34 @@ def render_explore_scaffold(view):
         # the same country (Basic Needs -> Wellbeing -> Opportunity); its label
         # is set by update_dd_nudge since it depends on the active dimension.
         # The second leaves the country behind for Regional Analysis.
-        next_tab_nudge('dd-next-dim', 'Next Dimension', 'noop:',
-                      wrapper_id='exp-nudge-region',
-                      hint='Country-wise analysis \u2014 stay on this country, '
-                           'or zoom out:',
-                      also=('exp-to-region', 'Regional Analysis',
-                            'exp-view:region')),
+        # Two ways onward, one per row: stay on this country and change the
+        # lens, or zoom out from the country to its whole region.
+        html.Div(className='next-tab-nudge nudge--rows', id='exp-nudge-region',
+                 children=[
+            html.Div(className='nudge-row', children=[
+                html.Span('Country-wise analysis \u2014 same country, next pillar:',
+                          className='next-tab-hint'),
+                html.Button('Switch to Wellbeing \u2192',
+                            id={'type': 'next-tab-btn', 'index': 'dd-next-dim'},
+                            className='next-tab-btn', n_clicks=0),
+                dcc.Store(id={'type': 'next-tab-target', 'index': 'dd-next-dim'},
+                          data='noop:'),
+            ]),
+            html.Div(className='nudge-row', children=[
+                html.Span('Zoom out \u2014 compare every country in the region:',
+                          className='next-tab-hint'),
+                html.Button('Switch to Regional Analysis \u2192',
+                            id={'type': 'next-tab-btn', 'index': 'exp-to-region'},
+                            className='next-tab-btn', n_clicks=0),
+                html.Button('\u2191 Back to Top',
+                            id={'type': 'next-tab-top-btn',
+                                'index': 'exp-to-region'},
+                            className='next-tab-btn next-tab-btn--ghost',
+                            n_clicks=0),
+                dcc.Store(id={'type': 'next-tab-target', 'index': 'exp-to-region'},
+                          data='exp-view:region'),
+            ]),
+        ]),
     ])
 
 
