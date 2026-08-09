@@ -1672,7 +1672,7 @@ def build_social_progress_tab():
                                value='ALL', clearable=False,
                                style={'minWidth': '230px'})],
                  className='control-group'),
-        timeline('sp', speed=700),
+        timeline('sp'),
     ])
     sp_section = html.Div([
         _sp_card('Global View', 'sp-bubble-title',
