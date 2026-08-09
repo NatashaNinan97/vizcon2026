@@ -1279,47 +1279,45 @@ def spi_change_pie(theme, baseline_year=None):
     values = [increased, constant, decreased]
     colors = [k['div_pos'], k['muted'], k['div_neg']]
 
-    # "No significant change" sits directly between "Improving" and
-    # "Declining", with only a few degrees of gap to "Declining" in most
-    # years. Plotly's automatic OUTSIDE label placement detects the two
-    # neighboring labels overlapping and merges them into one shared bracket
-    # callout — the earlier bug. A fixed floating annotation was tried next,
-    # but it ignores where the wedge actually is, which looks disconnected
-    # and breaks for a large slice (e.g. 2024, where this category is half
-    # the pie).
+    # Three attempts at labeling this pie via Plotly's automatic per-slice
+    # text all failed for the same underlying reason: "No significant
+    # change" sits directly between two other slices with very little
+    # angular room, so whatever Plotly (or a workaround) does with its
+    # label ends up either colliding with "Declining" (outside text),
+    # invisible on thin years (inside text hidden by uniformtext), or
+    # visually disconnected from its own wedge (a floating annotation).
+    # It also looked inconsistent: only one of the three slices was
+    # special-cased differently from the other two.
     #
-    # Real fix: give "No significant change" an INSIDE label instead of an
-    # outside one. Inside and outside labels are placed independently by
-    # Plotly, so this slice's label can never collide with "Declining"'s —
-    # regardless of how big or small the slice is. When the slice is too
-    # thin for the text to fit, uniformtext hides it cleanly (no overlap),
-    # and the legend below still names it.
+    # Fix: stop relying on Plotly's per-slice text placement entirely. No
+    # slice draws its own label. Instead every slice gets an identical,
+    # explicit callout to the right of the pie — a colored square plus its
+    # label and count, stacked at three FIXED vertical positions. Because
+    # the three destination slots never move, they cannot collide with each
+    # other regardless of how big or small any slice is in a given year.
     fig = go.Figure(go.Pie(
         labels=labels, values=values,
         marker=dict(colors=colors, line=dict(width=2, color=k['surface'])),
-        texttemplate='%{label}<br>%{value} countries',
-        textposition=['outside', 'inside', 'outside'],
-        insidetextorientation='horizontal',
-        textfont=dict(size=13),
-        outsidetextfont=dict(size=13, color=k['ink']),
-        insidetextfont=dict(size=12, color='white'),
+        textinfo='none',
         sort=False,   # keep slice order fixed so pie doesn't rotate between years
+        showlegend=False,   # replaced by the callout stack below
         # Pin the pie to an explicit domain and stop Plotly auto-scaling it.
-        # Outside labels change width year to year (e.g. "9 countries" vs
-        # "121 countries"), which made Plotly reflow the pie — shifting it and
-        # the legend sideways on every tick. A fixed domain + automargin off
-        # keeps position and size constant; only the slice angles change.
-        domain=dict(x=[0.22, 0.78], y=[0.16, 0.94]),
-        automargin=False,
+        domain=dict(x=[0.05, 0.55], y=[0.08, 1.0]),
         hovertemplate='<b>%{label}</b><br>Countries: %{value}<br>%{percent}<extra></extra>'))
+
+    callout_y = [0.82, 0.5, 0.18]   # fixed slots, same every year
+    annotations = [
+        dict(x=0.62, y=cy, xref='paper', yref='paper',
+             xanchor='left', yanchor='middle', showarrow=False, align='left',
+             font=dict(size=13, color=k['ink']),
+             text=(f"<span style='color:{color}'>\u25a0</span> "
+                   f"<b>{lbl}</b><br>&nbsp;&nbsp;{v} countries"))
+        for cy, lbl, v, color in zip(callout_y, labels, values, colors)
+    ]
+
     fig.update_layout(**base_layout(theme, height=420,
-                                    margin=dict(l=80, r=80, t=40, b=40),
-                                    legend=dict(orientation='h', y=-0.05,
-                                                x=0.5, xanchor='center',
-                                                yanchor='top',
-                                                font=dict(size=11))),
-                      showlegend=True,
-                      uniformtext=dict(mode='hide', minsize=11))
+                                    margin=dict(l=20, r=20, t=30, b=30)),
+                      showlegend=False, annotations=annotations)
 
     table = pd.DataFrame({'Category': labels, 'Countries': values,
                           'Percentage': [f'{v/sum(values)*100:.1f}%' for v in values]})
