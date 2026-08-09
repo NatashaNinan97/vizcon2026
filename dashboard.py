@@ -145,27 +145,46 @@ def how_to_read(text):
     ])
 
 
-def next_tab_nudge(key, label, target, wrapper_id=None, style=None):
+def next_tab_nudge(key, label, target, wrapper_id=None, style=None,
+                   also=None, hint='Done exploring this section?'):
     """Small pointer placed right before a Takeaway card, nudging the reader
     onward instead of scrolling past the summary unnoticed. Also doubles as a
     quick "back to top" so long tabs don't trap you.
 
     `key` must be unique per nudge on the page (e.g. 'ov', 'sp-spi').
     `target` is either 'tab:<tab_id>' (switch the top nav) or
-    'subview:<value>' (switch the Progress tab's own View toggle)."""
+    'subview:<value>' (switch the Progress tab's own View toggle).
+
+    `also` optionally adds a second destination as (key, label, target), for
+    places where the reader has two sensible next steps — e.g. the country
+    deep dive, which can lead either to Regional Analysis in the same tab or
+    onward to the next tab entirely."""
     extra = {}
     if wrapper_id:
         extra['id'] = wrapper_id
     if style:
         extra['style'] = style
-    return html.Div(className='next-tab-nudge', **extra, children=[
-        html.Span('Done exploring this section?', className='next-tab-hint'),
+    buttons = [
         html.Button([f'Switch to {label} \u2192'],
                     id={'type': 'next-tab-btn', 'index': key},
                     className='next-tab-btn', n_clicks=0),
+    ]
+    if also:
+        a_key, a_label, a_target = also
+        buttons.append(
+            html.Button([f'Switch to {a_label} \u2192'],
+                        id={'type': 'next-tab-btn', 'index': a_key},
+                        className='next-tab-btn', n_clicks=0))
+        buttons.append(
+            dcc.Store(id={'type': 'next-tab-target', 'index': a_key},
+                      data=a_target))
+    buttons.append(
         html.Button('\u2191 Back to Top',
                     id={'type': 'next-tab-top-btn', 'index': key},
-                    className='next-tab-btn next-tab-btn--ghost', n_clicks=0),
+                    className='next-tab-btn next-tab-btn--ghost', n_clicks=0))
+    return html.Div(className='next-tab-nudge', **extra, children=[
+        html.Span(hint, className='next-tab-hint'),
+        *buttons,
         dcc.Store(id={'type': 'next-tab-target', 'index': key}, data=target),
     ])
 
@@ -1190,9 +1209,51 @@ def render_explore_scaffold(view):
                 html.Div(id='dd-ind-table'),
             ]),
         ]),
-        next_tab_nudge('exp-to-region', 'Regional Analysis', 'exp-view:region',
-                      wrapper_id='exp-nudge-region'),
+        # Two ways onward. The first button advances to the next dimension for
+        # the same country (Basic Needs -> Wellbeing -> Opportunity); its label
+        # is set by update_dd_nudge since it depends on the active dimension.
+        # The second leaves the country behind for Regional Analysis.
+        next_tab_nudge('dd-next-dim', 'Next Dimension', 'noop:',
+                      wrapper_id='exp-nudge-region',
+                      hint='Country-wise analysis \u2014 stay on this country, '
+                           'or zoom out:',
+                      also=('exp-to-region', 'Regional Analysis',
+                            'exp-view:region')),
     ])
+
+
+# Cycle the dimension for the country currently on screen. Keeps the reader on
+# the same country instead of sending them to a different view.
+DIM_CYCLE = [o['value'] for o in DIM_OPTIONS]
+
+
+@callback(Output('exp-dim', 'value', allow_duplicate=True),
+          Input({'type': 'next-tab-btn', 'index': 'dd-next-dim'}, 'n_clicks'),
+          State('exp-dim', 'value'),
+          prevent_initial_call=True)
+def dd_next_dimension(n, dim):
+    if not n:
+        return no_update
+    i = DIM_CYCLE.index(dim) if dim in DIM_CYCLE else 0
+    return DIM_CYCLE[(i + 1) % len(DIM_CYCLE)]
+
+
+DIM_SHORT = {'Basic Needs': 'Basic Needs',
+             'Foundations of Wellbeing': 'Wellbeing',
+             'Societal Opportunity': 'Opportunity'}
+
+
+@callback(Output({'type': 'next-tab-btn', 'index': 'dd-next-dim'}, 'children'),
+          Input('exp-dim', 'value'), Input('exp-country', 'value'))
+def update_dd_nudge(dim, country):
+    """Name the next dimension and the country, so the button says exactly
+    where it goes — e.g. "Switch to Wellbeing for Nepal →"."""
+    i = DIM_CYCLE.index(dim) if dim in DIM_CYCLE else 0
+    nxt = DIM_CYCLE[(i + 1) % len(DIM_CYCLE)]
+    label = f'Switch to {DIM_SHORT.get(nxt, nxt)}'
+    if country:
+        label += f' for {flag(country)} {country}'
+    return f'{label} \u2192'
 
 
 @callback(Output('exp-region-body', 'children'),
