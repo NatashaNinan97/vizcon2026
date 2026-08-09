@@ -1118,6 +1118,36 @@ def render_explore_scaffold(view):
                 html.Div(id='exp-comp-cards', className='comp-cards'),
                 html.Div(id='exp-drill-body'),
             ]),
+            # Same two ways onward as the country deep dive: cycle the pillar
+            # while staying regional, or leave Explore for the Progress tab.
+            html.Div(className='next-tab-nudge nudge--rows', children=[
+                html.Div(className='nudge-row', children=[
+                    html.Span('Regional analysis \u2014 same regions, next pillar:',
+                              className='next-tab-hint'),
+                    html.Button('Switch to Wellbeing \u2192',
+                                id={'type': 'next-tab-btn',
+                                    'index': 'rg-next-dim'},
+                                className='next-tab-btn', n_clicks=0),
+                    dcc.Store(id={'type': 'next-tab-target',
+                                  'index': 'rg-next-dim'}, data='noop:'),
+                ]),
+                html.Div(className='nudge-row', children=[
+                    html.Span('Move on \u2014 who improved, and what money buys:',
+                              className='next-tab-hint'),
+                    html.Button('Switch to Progress \u2192',
+                                id={'type': 'next-tab-btn',
+                                    'index': 'rg-to-progress'},
+                                className='next-tab-btn', n_clicks=0),
+                    html.Button('\u2191 Back to Top',
+                                id={'type': 'next-tab-top-btn',
+                                    'index': 'rg-to-progress'},
+                                className='next-tab-btn next-tab-btn--ghost',
+                                n_clicks=0),
+                    dcc.Store(id={'type': 'next-tab-target',
+                                  'index': 'rg-to-progress'},
+                              data='tab:social_progress'),
+                ]),
+            ]),
         ])
     # Country deep dive — fully static scaffold with fixed graph IDs.
     # Callbacks update figure props + text in place (never rebuild the DOM),
@@ -1260,9 +1290,26 @@ def dd_next_dimension(n, dim):
     return DIM_CYCLE[(i + 1) % len(DIM_CYCLE)]
 
 
+@callback(Output('exp-dim', 'value', allow_duplicate=True),
+          Input({'type': 'next-tab-btn', 'index': 'rg-next-dim'}, 'n_clicks'),
+          State('exp-dim', 'value'),
+          prevent_initial_call=True)
+def rg_next_dimension(n, dim):
+    """Same pillar cycle from the Regional Analysis view."""
+    if not n:
+        return no_update
+    i = DIM_CYCLE.index(dim) if dim in DIM_CYCLE else 0
+    return DIM_CYCLE[(i + 1) % len(DIM_CYCLE)]
+
+
 DIM_SHORT = {'Basic Needs': 'Basic Needs',
              'Foundations of Wellbeing': 'Wellbeing',
              'Societal Opportunity': 'Opportunity'}
+
+
+def _next_dim(dim):
+    i = DIM_CYCLE.index(dim) if dim in DIM_CYCLE else 0
+    return DIM_CYCLE[(i + 1) % len(DIM_CYCLE)]
 
 
 @callback(Output({'type': 'next-tab-btn', 'index': 'dd-next-dim'}, 'children'),
@@ -1270,12 +1317,19 @@ DIM_SHORT = {'Basic Needs': 'Basic Needs',
 def update_dd_nudge(dim, country):
     """Name the next dimension and the country, so the button says exactly
     where it goes — e.g. "Switch to Wellbeing for Nepal →"."""
-    i = DIM_CYCLE.index(dim) if dim in DIM_CYCLE else 0
-    nxt = DIM_CYCLE[(i + 1) % len(DIM_CYCLE)]
-    label = f'Switch to {DIM_SHORT.get(nxt, nxt)}'
+    label = f'Switch to {DIM_SHORT.get(_next_dim(dim), _next_dim(dim))}'
     if country:
         label += f' for {flag(country)} {country}'
     return f'{label} \u2192'
+
+
+@callback(Output({'type': 'next-tab-btn', 'index': 'rg-next-dim'}, 'children'),
+          Input('exp-dim', 'value'))
+def update_rg_nudge(dim):
+    """Regional view has no single country, so the label names the pillar
+    only — e.g. "Switch to Wellbeing →"."""
+    nxt = _next_dim(dim)
+    return f'Switch to {DIM_SHORT.get(nxt, nxt)} \u2192'
 
 
 @callback(Output('exp-region-body', 'children'),
