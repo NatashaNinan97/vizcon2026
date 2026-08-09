@@ -1279,12 +1279,27 @@ def spi_change_pie(theme, baseline_year=None):
     values = [increased, constant, decreased]
     colors = [k['div_pos'], k['muted'], k['div_neg']]
 
+    # "Improving" dominates in most years (85-95% of countries), which pushes
+    # the "No significant change" / "Declining" pair right up to the 12
+    # o'clock start point — their outside labels then stack on top of each
+    # other and overlap, as seen in early baseline years.
+    #
+    # Fix: rotate the whole pie (per year) so the boundary between
+    # "Improving" and "No significant change" always lands at 3 o'clock (90°,
+    # Plotly's default direction is clockwise from 12). That guarantees the
+    # two small slices always sit on the right side of the circle, where
+    # their outside labels naturally point rightward and stack vertically
+    # instead of colliding at the top.
+    p1 = increased / len(merged) if len(merged) else 0
+    rotation = (90 - p1 * 360) % 360
+
     fig = go.Figure(go.Pie(
         labels=labels, values=values,
         marker=dict(colors=colors, line=dict(width=2, color=k['surface'])),
         texttemplate='%{label}<br>%{value} countries', textposition='outside',
         textfont=dict(size=13), outsidetextfont=dict(size=13, color=k['ink']),
         sort=False,   # keep slice order fixed so pie doesn't rotate between years
+        rotation=rotation,
         # Pin the pie to an explicit domain and stop Plotly auto-scaling it.
         # Outside labels change width year to year (e.g. "9 countries" vs
         # "121 countries"), which made Plotly reflow the pie — shifting it and

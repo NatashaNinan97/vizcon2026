@@ -1607,17 +1607,21 @@ def _happy_year(year):
 
 
 def _sp_card(kicker, title_id, title, sub, graph_id, fig, table=None,
-             table_key=None, extra=None, htr=None):
+             table_key=None, extra=None, htr=None, extra_top=None):
     """Card with a stable graph id — callbacks update figure props in place
     instead of re-mounting the DOM (keeps playback smooth). Pass `table` for
     a static data twin, or `table_key` for one built lazily on first open.
-    `htr` adds a 'How to read this chart' block under the graph."""
+    `htr` adds a 'How to read this chart' block under the graph. `extra_top`
+    inserts content (e.g. this chart's own filter controls) between the
+    heading and the graph, so the controls live with the chart they drive."""
     kids = [
         html.Div([html.Div(kicker, className='kicker'),
                   html.H3(title, className='card-title', id=title_id),
                   html.Div(sub, className='card-sub')], className='card-head'),
-        graph(fig, id=graph_id),
     ]
+    if extra_top:
+        kids.extend(extra_top if isinstance(extra_top, list) else [extra_top])
+    kids.append(graph(fig, id=graph_id))
     if htr:
         kids.append(how_to_read(htr))
     if table is not None:
@@ -1654,22 +1658,27 @@ def build_social_progress_tab():
     hs_fig, _ = _happy_spi(hy, focus)
 
     # --- Sub-tab: Social Progress ---
+    # Region Lens and the year slider now live inside the Global View card
+    # itself (via extra_top), directly under its heading, since they only
+    # ever drive this one chart.
+    sp_filter_controls = html.Div(className='filter-bar', style={'marginBottom': '16px'},
+                                  children=[
+        html.Div([html.Div('Region Lens', className='control-label'),
+                  dcc.Dropdown(id='sp-focus',
+                               options=([{'label': 'All Regions', 'value': 'ALL'}] +
+                                        [{'label': region_display(r), 'value': r}
+                                         for r in regions]),
+                               value='ALL', clearable=False,
+                               style={'minWidth': '230px'})],
+                 className='control-group'),
+        timeline('sp'),
+    ])
     sp_section = html.Div([
-        html.Div(className='filter-bar', style={'marginBottom': '16px'}, children=[
-            html.Div([html.Div('Region Lens', className='control-label'),
-                      dcc.Dropdown(id='sp-focus',
-                                   options=([{'label': 'All Regions', 'value': 'ALL'}] +
-                                            [{'label': region_display(r), 'value': r}
-                                             for r in regions]),
-                                   value='ALL', clearable=False,
-                                   style={'minWidth': '230px'})],
-                     className='control-group'),
-            timeline('sp'),
-        ]),
         _sp_card('Global View', 'sp-bubble-title',
                  f'Social Progress Index — Every Country ({year})',
                  'Every bubble represents a country, bubble size = population.',
                  'sp-bubble-graph', bub_fig, table_key='bubble',
+                 extra_top=sp_filter_controls,
                  htr=['Each bubble is a country. Left\u2013right position is its '
                       'SPI score (higher is better); bubble size is population.',
                       'The chart is split into 7 vertical tiers from struggling '
