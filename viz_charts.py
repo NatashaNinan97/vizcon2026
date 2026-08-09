@@ -1280,28 +1280,29 @@ def spi_change_pie(theme, baseline_year=None):
     colors = [k['div_pos'], k['muted'], k['div_neg']]
 
     # "No significant change" sits directly between "Improving" and
-    # "Declining" and is often a sliver of the pie (as little as ~1% in
-    # early years) — the angular gap to its neighbor "Declining" is only a
-    # few degrees, so Plotly's automatic outside-label placement detects the
-    # two label boxes overlapping and merges them into one shared bracket
-    # callout. Rotating the pie only moves WHERE that crowded pair sits, not
-    # the gap BETWEEN them, so rotation alone can never separate them.
+    # "Declining", with only a few degrees of gap to "Declining" in most
+    # years. Plotly's automatic OUTSIDE label placement detects the two
+    # neighboring labels overlapping and merges them into one shared bracket
+    # callout — the earlier bug. A fixed floating annotation was tried next,
+    # but it ignores where the wedge actually is, which looks disconnected
+    # and breaks for a large slice (e.g. 2024, where this category is half
+    # the pie).
     #
-    # Fix: take "No significant change" out of Plotly's automatic label
-    # system entirely (textposition='none' for that point) and draw it
-    # ourselves as a fixed annotation pinned to the right edge of the chart
-    # area — same position every year, so it never competes for space with
-    # "Declining", which is then free to be auto-placed wherever Plotly
-    # finds room.
-    text = [f'{lbl}<br>{v} countries' if lbl != 'No significant change' else ''
-            for lbl, v in zip(labels, values)]
-
+    # Real fix: give "No significant change" an INSIDE label instead of an
+    # outside one. Inside and outside labels are placed independently by
+    # Plotly, so this slice's label can never collide with "Declining"'s —
+    # regardless of how big or small the slice is. When the slice is too
+    # thin for the text to fit, uniformtext hides it cleanly (no overlap),
+    # and the legend below still names it.
     fig = go.Figure(go.Pie(
-        labels=labels, values=values, text=text,
+        labels=labels, values=values,
         marker=dict(colors=colors, line=dict(width=2, color=k['surface'])),
-        texttemplate='%{text}',
-        textposition=['outside', 'none', 'outside'],
-        textfont=dict(size=13), outsidetextfont=dict(size=13, color=k['ink']),
+        texttemplate='%{label}<br>%{value} countries',
+        textposition=['outside', 'inside', 'outside'],
+        insidetextorientation='horizontal',
+        textfont=dict(size=13),
+        outsidetextfont=dict(size=13, color=k['ink']),
+        insidetextfont=dict(size=12, color='white'),
         sort=False,   # keep slice order fixed so pie doesn't rotate between years
         # Pin the pie to an explicit domain and stop Plotly auto-scaling it.
         # Outside labels change width year to year (e.g. "9 countries" vs
@@ -1312,27 +1313,13 @@ def spi_change_pie(theme, baseline_year=None):
         automargin=False,
         hovertemplate='<b>%{label}</b><br>Countries: %{value}<br>%{percent}<extra></extra>'))
     fig.update_layout(**base_layout(theme, height=420,
-                                    margin=dict(l=80, r=130, t=40, b=40),
+                                    margin=dict(l=80, r=80, t=40, b=40),
                                     legend=dict(orientation='h', y=-0.05,
                                                 x=0.5, xanchor='center',
                                                 yanchor='top',
                                                 font=dict(size=11))),
                       showlegend=True,
-                      uniformtext=dict(mode='hide', minsize=11),
-                      annotations=[dict(
-                          # Fixed position on the right edge of the chart,
-                          # independent of baseline year and of where the
-                          # slice itself falls, so it never has anything to
-                          # collide with. A colored square stands in for a
-                          # connector line, matching this slice's wedge color
-                          # (k['muted']) so it still reads as "this label
-                          # belongs to that grey sliver".
-                          x=1.0, y=0.55, xref='paper', yref='paper',
-                          xanchor='left', yanchor='middle', showarrow=False,
-                          text=(f"<span style='color:{colors[1]}'>\u25a0</span> "
-                                f"No significant change<br>"
-                                f"&nbsp;&nbsp;{constant} countries"),
-                          font=dict(size=13, color=k['ink']), align='left')])
+                      uniformtext=dict(mode='hide', minsize=11))
 
     table = pd.DataFrame({'Category': labels, 'Countries': values,
                           'Percentage': [f'{v/sum(values)*100:.1f}%' for v in values]})
