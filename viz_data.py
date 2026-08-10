@@ -218,13 +218,35 @@ _ISO3_TO_2 = {
 _country_iso3 = (df.drop_duplicates('Country')
                  .set_index('Country')['SPI country code'].to_dict())
 
+# Country codes are looked up from the SPI table, so places that appear only
+# in the World Happiness data have no entry there and would render without a
+# flag (Kosovo is the one that reaches the top-20 happiness chart). Map them
+# to ISO 3166-1 alpha-2 directly. Entries without a national flag codepoint
+# are mapped to '' so they degrade to no flag rather than a broken glyph.
+_HAPPINESS_ONLY_ISO2 = {
+    'Kosovo': 'XK',                      # user-assigned code, widely supported
+    'Belize': 'BZ',
+    'Hong Kong SAR of China': 'HK',
+    'Puerto Rico': 'PR',
+    'State of Palestine': 'PS',
+    'Taiwan Province of China': 'TW',
+    'North Cyprus': '',                  # no ISO code / no flag emoji
+    'Somaliland Region': '',             # unrecognised, no flag emoji
+}
+
+
+def _iso2_to_emoji(iso2):
+    return ''.join(chr(0x1F1E6 + ord(c) - ord('A')) for c in iso2)
+
 
 def flag(country):
     """Emoji flag for a country name, or '' when unknown."""
     iso2 = _ISO3_TO_2.get(str(_country_iso3.get(country, '')).strip())
     if not iso2:
+        iso2 = _HAPPINESS_ONLY_ISO2.get(country, '')
+    if not iso2:
         return ''
-    return ''.join(chr(0x1F1E6 + ord(c) - ord('A')) for c in iso2)
+    return _iso2_to_emoji(iso2)
 
 
 # --------------------------------------------------------- cached helpers ---
