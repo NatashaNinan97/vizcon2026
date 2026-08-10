@@ -553,27 +553,26 @@ def _intent_definition(q):
     if wants_happy:
         hy = max(happy_years)
         d = happy_df[happy_df['Year'] == hy]
+        # Rank by average contribution so the list is ordered by influence,
+        # but report only the factor names — the contribution values are in
+        # score-points, not percentages of 10, so showing them invites the
+        # false reading that they should sum to the full score.
         rows = []
         for label, col in HAPPINESS_FACTOR_COLS.items():
             if col in d.columns:
                 rows.append((label, pd.to_numeric(d[col], errors='coerce').mean()))
         rows.sort(key=lambda r: -(r[1] if pd.notna(r[1]) else -1))
-        total = sum(v for _, v in rows if pd.notna(v))
         lines = [f'The World Happiness Report explains each country\u2019s score '
-                 f'using six factors. Average contribution across all countries '
-                 f'in {hy}, largest first:', '']
-        for i, (label, v) in enumerate(rows, 1):
-            share = f' ({v / total * 100:.0f}% of the explained total)' if total else ''
-            lines.append(f'{i}. {label} \u2014 {v:.2f} points{share}')
+                 f'using six factors, ordered here by how much they influence '
+                 f'the score on average:', '']
+        for i, (label, _v) in enumerate(rows, 1):
+            lines.append(f'{i}. {label}')
         lines += ['',
                   'The score itself comes from a survey question asking people '
                   'to rate their own life on a 0\u201310 ladder. These six '
                   'factors do not create the score \u2014 they account for how '
-                  'much of it is statistically attributable to each driver, so '
-                  'they sum to less than the full score. The unexplained '
-                  'remainder is reported as "Dystopia + residual".']
-        table = pd.DataFrame({'Factor': [r[0] for r in rows],
-                              f'Avg contribution ({hy})': [round(r[1], 3) for r in rows]})
+                  'much of it is statistically attributable to each driver.']
+        table = pd.DataFrame({'Factor': [r[0] for r in rows]})
         return {'answer': '\n'.join(lines), 'fig': None, 'table': table}
 
     # Social Progress Index
