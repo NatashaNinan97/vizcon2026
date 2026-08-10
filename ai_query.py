@@ -17,7 +17,7 @@ import plotly.graph_objects as go
 
 from viz_data import (df, happy_df, world_df, years, happy_years, regions,
                       LATEST, EARLIEST, SPI_COL, GDP_COL, POP_COL,
-                      DIMENSIONS, countries, flag)
+                      DIMENSIONS, N_INDICATORS, countries, flag)
 from viz_theme import t, base_layout, region_colors, region_display, REGION_ORDER
 
 THEME = 'light'
@@ -527,6 +527,72 @@ def _intent_region_compare(q, metric, year):
     return {'answer': answer, 'fig': fig, 'table': table.round(2)}
 
 
+# The six factors the World Happiness Report uses to explain each country's
+# score, mapped to their column in happy_df. The score itself is a survey
+# answer (Cantril ladder); these factors explain how much of it is
+# attributable to each driver, which is why they sum to less than the score
+# (the remainder is "Dystopia + residual").
+HAPPINESS_FACTOR_COLS = {
+    'GDP per capita (log)': 'Explained by: Log GDP per capita',
+    'Social support': 'Explained by: Social support',
+    'Healthy life expectancy': 'Explained by: Healthy life expectancy',
+    'Freedom to make life choices': 'Explained by: Freedom to make life choices',
+    'Generosity': 'Explained by: Generosity',
+    'Perceptions of corruption': 'Explained by: Perceptions of corruption',
+}
+
+
+def _intent_definition(q):
+    """Answer "what factors / components make up X" for the happiness index
+    and the Social Progress Index. Figures come from the data, not prose."""
+    wants_happy = bool(re.search(r'\b(happi\w*|wellbeing score|life satisfaction)\b', q))
+    wants_spi = bool(re.search(r'\b(spi|social progress|progress index|progress score)\b', q))
+    if not wants_happy and not wants_spi:
+        return None
+
+    if wants_happy:
+        hy = max(happy_years)
+        d = happy_df[happy_df['Year'] == hy]
+        rows = []
+        for label, col in HAPPINESS_FACTOR_COLS.items():
+            if col in d.columns:
+                rows.append((label, pd.to_numeric(d[col], errors='coerce').mean()))
+        rows.sort(key=lambda r: -(r[1] if pd.notna(r[1]) else -1))
+        total = sum(v for _, v in rows if pd.notna(v))
+        lines = [f'The World Happiness Report explains each country\u2019s score '
+                 f'using six factors. Average contribution across all countries '
+                 f'in {hy}, largest first:', '']
+        for i, (label, v) in enumerate(rows, 1):
+            share = f' ({v / total * 100:.0f}% of the explained total)' if total else ''
+            lines.append(f'{i}. {label} \u2014 {v:.2f} points{share}')
+        lines += ['',
+                  'The score itself comes from a survey question asking people '
+                  'to rate their own life on a 0\u201310 ladder. These six '
+                  'factors do not create the score \u2014 they account for how '
+                  'much of it is statistically attributable to each driver, so '
+                  'they sum to less than the full score. The unexplained '
+                  'remainder is reported as "Dystopia + residual".']
+        table = pd.DataFrame({'Factor': [r[0] for r in rows],
+                              f'Avg contribution ({hy})': [round(r[1], 3) for r in rows]})
+        return {'answer': '\n'.join(lines), 'fig': None, 'table': table}
+
+    # Social Progress Index
+    lines = [f'The Social Progress Index is built from {N_INDICATORS} '
+             f'indicators, grouped into 12 components across 3 dimensions:', '']
+    rows = []
+    for dim, meta in DIMENSIONS.items():
+        comps = meta['components']
+        lines.append(f'\u2022 {dim}: ' + ', '.join(comps))
+        for c in comps:
+            rows.append((dim, c))
+    lines += ['',
+              'It deliberately excludes economic indicators such as GDP, so it '
+              'measures social and environmental outcomes independently of '
+              'income.']
+    table = pd.DataFrame(rows, columns=['Dimension', 'Component'])
+    return {'answer': '\n'.join(lines), 'fig': None, 'table': table}
+
+
 # ------------------------------------------------------------------ router --
 
 def answer_question(question):
@@ -536,6 +602,21 @@ def answer_question(question):
     if not q:
         return {'answer': 'Ask a question about the data \u2014 try one of the '
                           'suggestions below.', 'fig': None, 'table': None}
+
+    # Definitional questions ("what factors make up the happiness index?",
+    # "how is SPI calculated?") ask what a metric IS, not for a ranking of
+    # it. These have to be caught before the metric-driven intents below,
+    # because the metric alias ("happiness") otherwise matches and the
+    # question falls through to a top-N ranking — answering "the happiest
+    # countries" when the user asked what the index is composed of.
+    definitional = re.search(
+        r'\b(what|which|how)\b.{0,40}?\b(factor\w*|component\w*|indicator\w*|'
+        r'dimension\w*|pillar\w*|made up of|make[s]? up|compris\w*|consist\w*|'
+        r'calculat\w*|comput\w*|measur\w*|defin\w*|based on)\b', q)
+    if definitional:
+        result = _intent_definition(q)
+        if result:
+            return result
 
     year = _find_year(q)
     region = _find_region(q)
@@ -634,14 +715,21 @@ def answer_question(question):
 
 
 # ---------------------------------------------------------- example prompts ---
+# Deliberately avoids questions the dashboard's charts already answer
+# visually — "who improved most since 2011" is the Biggest Movers chart,
+# "does GDP correlate with happiness" is the Happiness vs Social Progress
+# chart, and top/bottom SPI rankings are the bubble chart. These prompts
+# instead cover what no chart does: single-country lookups with rank and
+# regional context, per-country trends, definitional questions, and
+# component-level queries that are otherwise several clicks deep in Explore.
 SUGGESTED_QUESTIONS = [
-    "Which countries improved the most since 2011?",
-    "Top 10 happiest countries",
-    "Does GDP correlate with happiness?",
-    "Which region has the highest GDP?",
-    "Bottom 5 countries by social progress",
-    "Correlation between social progress and happiness",
+    "How does Nepal compare on social progress?",
+    "Which countries had a decline in population between 2011 and 2025?",
+    "What all factors influence happiness index?",
+    "Show GDP, happiness and social progress for India",
+    "How has Vietnam's GDP changed over the years?",
     "Which region scores lowest on safety?",
-    "Top 5 countries by population",
+    "Which countries score highest on rights and voice?",
+    "How is the Social Progress Index calculated?",
     "Compare India and China on population",
 ]
