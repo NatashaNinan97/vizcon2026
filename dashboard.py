@@ -23,6 +23,7 @@ from dash import (Dash, dcc, html, Input, Output, State, callback, ctx, ALL,
                   MATCH, no_update, clientside_callback, ClientsideFunction)
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+from flask import request
 
 from viz_data import (df, world_df, happy_df, years, countries, regions,
                       LATEST, EARLIEST, SPI_COL, GDP_COL, POP_COL,
@@ -48,6 +49,24 @@ app = Dash(__name__,
 # Flask instance underneath Dash — gunicorn/WSGI hosts (Render, etc.) import
 # this module-level `server` name to run the app in production.
 server = app.server
+
+# Serve the HTML shell, the Dash JS bundles and the callback responses with
+# no-store. Without this, a browser that visited an earlier deploy keeps its
+# cached bundle and keeps rendering the OLD front-end even though the server
+# is running new code — which looks exactly like "the deploy didn't work".
+# Fingerprinted files under /assets/ still get a long cache since their URL
+# changes whenever the file does.
+_NO_STORE_PREFIXES = ('/_dash-', '/_reload-hash')
+
+
+@server.after_request
+def _add_cache_headers(response):
+    path = request.path or '/'
+    if path == '/' or path.startswith(_NO_STORE_PREFIXES):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    return response
 
 app.index_string = '''<!DOCTYPE html>
 <html>
