@@ -482,35 +482,56 @@ SMALL_COUNTRY_PINS = {
 
 def locator_map(country, region_name, dff, theme):
     k = t(theme)
-    scope_map = {'Europe': 'europe', 'Sub-Saharan Africa': 'africa',
-                 'Middle East & North Africa': 'africa',
-                 'North America': 'north america',
-                 'Latin America & Caribbean': 'south america',
-                 'East Asia & Pacific': 'asia', 'South Asia': 'asia',
-                 'Central Asia': 'asia'}
+    # Instead of Plotly's built-in scopes (which are fixed continent boxes
+    # that don't match our region definitions — Mexico gets cut off by
+    # "south america", Oman gets cut off by "africa"), use explicit
+    # lon/lat viewports per region that actually contain every country
+    # in that region.
+    _REGION_VIEWPORT = {
+        'Europe':                      (-12, 42, 28, 72),
+        'Sub-Saharan Africa':          (-20, 60, -36, 18),
+        'Middle East & North Africa':  (-18, 65, 10, 42),
+        'North America':               (-170, -50, 10, 75),
+        'Latin America & Caribbean':   (-120, -30, -58, 34),
+        'East Asia & Pacific':         (70, 180, -48, 55),
+        'South Asia':                  (60, 100, 2, 40),
+        'Central Asia':                (45, 90, 30, 56),
+    }
+    # Countries that span far beyond their region's viewport and need a
+    # wider or different view. Show these at world scale instead.
+    _WIDE_COUNTRIES = {'Russia', 'United States', 'France'}
     pin = SMALL_COUNTRY_PINS.get(country)
 
+    # ONE choropleth trace, not two. Two overlapping traces (all countries in
+    # grey, then the selected country on top) left the highlight hidden until
+    # some interaction forced a redraw and reordered the paint — the
+    # "highlighted but not visible until I move" bug. Encoding the highlight
+    # as a z-value inside a single trace removes the overlap entirely, so the
+    # colour is correct on first paint.
+    locs = dff['Country'].tolist()
+    if country not in locs:
+        locs = locs + [country]
+    zvals = [1 if c == country else 0 for c in locs]
+    accent = k['slots'][0]
     fig = go.Figure()
     fig.add_trace(go.Choropleth(
-        locations=dff['Country'].tolist(), locationmode='country names',
-        z=[0] * len(dff), showscale=False,
-        colorscale=[[0, k['land']], [1, k['land']]],
-        marker_line_color=k['surface'], marker_line_width=0.4, hoverinfo='skip'))
-    fig.add_trace(go.Choropleth(
-        locations=[country], locationmode='country names', z=[1],
-        showscale=False,
-        colorscale=[[0, k['slots'][0]], [1, k['slots'][0]]],
-        marker_line_color=k['surface'], marker_line_width=0.6,
-        hovertemplate='<b>%{location}</b><extra></extra>'))
+        locations=locs, locationmode='country names',
+        z=zvals, showscale=False,
+        # Two-stop scale with a hard break: 0 -> land grey, 1 -> accent.
+        colorscale=[[0.0, k['land']], [0.5, k['land']],
+                    [0.5, accent], [1.0, accent]],
+        zmin=0, zmax=1,
+        marker_line_color=k['surface'], marker_line_width=0.4,
+        text=locs, hoverinfo='skip'))
 
     geo = dict(showframe=False, showcoastlines=False, showland=False,
-               bgcolor='rgba(0,0,0,0)', resolution=50)
+               bgcolor='rgba(0,0,0,0)', resolution=50,
+               projection_type='natural earth')
 
     if pin:
         # Too small to see as a polygon: add a ring + label pin, and zoom the
         # viewport to a tight window around the country so it's identifiable.
         lon, lat, span = pin
-        accent = k['slots'][0]
         fig.add_trace(go.Scattergeo(
             lon=[lon], lat=[lat], mode='markers',
             marker=dict(size=26, color='rgba(0,0,0,0)',
@@ -523,17 +544,23 @@ def locator_map(country, region_name, dff, theme):
             text=[f'  {country}'], textposition='middle right',
             textfont=dict(size=12, color=k['ink']),
             hovertemplate=f'<b>{country}</b><extra></extra>', showlegend=False))
-        geo.update(projection_type='natural earth',
-                   lonaxis=dict(range=[lon - span, lon + span]),
+        geo.update(lonaxis=dict(range=[lon - span, lon + span]),
                    lataxis=dict(range=[lat - span * 0.72, lat + span * 0.72]),
                    showcountries=True, countrycolor=k['surface'],
                    countrywidth=0.5, showland=True, landcolor=k['land'])
     else:
-        scope = scope_map.get(region_name)
-        if scope:
-            geo['scope'] = scope
+        vp = _REGION_VIEWPORT.get(region_name)
+        if country in _WIDE_COUNTRIES or not vp:
+            # Country spans multiple continents or has no region viewport —
+            # show the whole world so nothing gets clipped.
+            geo.update(showcountries=True, countrycolor=k['surface'],
+                       countrywidth=0.5, showland=True, landcolor=k['land'])
         else:
-            geo['projection_type'] = 'natural earth'
+            lon0, lon1, lat0, lat1 = vp
+            geo.update(lonaxis=dict(range=[lon0, lon1]),
+                       lataxis=dict(range=[lat0, lat1]),
+                       showcountries=True, countrycolor=k['surface'],
+                       countrywidth=0.5, showland=True, landcolor=k['land'])
 
     fig.update_layout(**base_layout(theme, height=300,
                                     margin=dict(l=0, r=0, t=8, b=0)))
